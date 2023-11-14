@@ -1,0 +1,22 @@
+version: '3'
+services:
+  mxdb-server:
+    container_name: mxdb-server
+    image: docker.psi.ch:5000/heidi/mxdb-server:${VERSION}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 8080:5000
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/certificates:/etc/certificates:ro
+      - ./appconfig.py:/etc/appconfig.py:ro
+    networks:
+      - my-network
+
+networks:
+  my-network:
