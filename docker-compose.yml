@@ -14,7 +14,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/certificates:/etc/certificates:ro
-      - ./appconfig.py:/etc/appconfig.py:ro
+      - ./appconfig.py:/opt/mxdb/appconfig.py:ro
     networks:
       - my-network
 
