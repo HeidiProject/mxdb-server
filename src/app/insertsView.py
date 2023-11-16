@@ -131,7 +131,7 @@ def dbInsert():
     # Parse message and create metadata
     try:
         parsedMessage = messageParser.messageParser(message)
-        if collection.lower() not in ["vdp"]:
+        if collection.lower() not in ["vdp", "tokens"]:
             parsedMessage.gen_metadata()
     except Exception as e:
         err_msg = "Cannot parse incoming message. Reason: {}".format(e)

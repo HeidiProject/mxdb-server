@@ -26,6 +26,9 @@ from flask_cors import CORS, cross_origin
 
 import mongo_operations as mongo_ops
 
+import importlib
+appconfig = importlib.import_module("{}".format("appconfig"))
+
 
 def getitem(obj, item, default):
     # Cool idea found in https://github.com/bokeh/bokeh/blob/master/examples/embed/simple/simple.py
@@ -112,10 +115,10 @@ def dbQuery():
         raise InvalidUsage(msg)
 
     if coll not in collections.collectionNames():
-        if (coll == "Users") and ("key" in query):
+        if (coll == "Users" or coll == "Tokens") and ("key" in query):
             print("inside key section")
             key = query.pop(u"key")
-            if key == "yaMmAku78QbpN3xfjNoD6HJNVHX7nV0b":
+            if key == appconfig.dbKey:
                 pass
         else:
             msg = "Collection not found in the database. Available choices: {}".format(

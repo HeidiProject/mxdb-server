@@ -12,6 +12,7 @@ class dbCollections(object):
         self.__dict__[u"Spreadsheet"] = u"Spreadsheet"
         self.__dict__[u"Shipping"] = u"Shipping"
         self.__dict__[u"PuckInventory"] = u"PuckInventory"
+        self.__dict__[u"Tokens"] = u"Tokens"
         self.__dict__[u"Vdp"] = u"Vdp"
 
     def __getitem__(self, item):
