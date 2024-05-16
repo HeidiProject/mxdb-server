@@ -1,8 +1,11 @@
-FROM python:3.11-slim
+FROM python:3.11
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+RUN apt-get update && apt-get install -y vim nano
 
 COPY src/ /opt/mxdb
+COPY appconfig.py /opt/mxdb/appconfig.py
+
 COPY requirements.txt .
 
 #RUN apt-get install bc

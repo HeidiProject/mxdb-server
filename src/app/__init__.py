@@ -17,7 +17,9 @@ NGINX_UPSTREAM_SERVER_TIMEOUT = timeouts_conf.NGINX_UPSTREAM_SERVER_TIMEOUT
 
 app = Flask(__name__)
 CORS(app)
-app.config["MONGO_URI"] = appconfig.dbURI
+#app.config["MONGO_URI"] = appconfig.dbURI
+#print(app.config["MONGO_URI"])
+app.config["MONGO_URI"] = "mongodb://172.23.168.188"
 mongo = PyMongo(app)
 
 from app import insertsView
