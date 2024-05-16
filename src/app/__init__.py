@@ -8,7 +8,7 @@ from flask_cors import CORS, cross_origin
 import importlib
 import os
 
-import timeouts_conf
+import etc.timeouts_conf as timeouts_conf
 
 appconfig = importlib.import_module("{}".format("appconfig"))
 

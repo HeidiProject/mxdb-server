@@ -1,19 +1,28 @@
 FROM python:3.11
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-RUN apt-get update && apt-get install -y vim nano
+RUN apt-get update && apt-get install -y vim nano git
 
-COPY src/ /opt/mxdb
-COPY appconfig.py /opt/mxdb/appconfig.py
+ARG USER=HeidiProject
+ARG REPO=mxdb-server
+ARG BRANCH=dewar-logistics
+ADD https://api.github.com/repos/$USER/$REPO/git/refs/heads/$BRANCH version.json
+RUN git clone -b $BRANCH https://github.com/$USER/$REPO.git
 
-COPY requirements.txt .
+RUN git config --global user.email "katemarylouisesmith@gmail.com"
+RUN git config --global user.name "Kate Smith"
+
+
+#COPY /mxdb-server/src/ /opt/mxdb
+#COPY /mxdb-server/appconfig.py /opt/mxdb/appconfig.py
+
 
 #RUN apt-get install bc
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r /mxdb-server/requirements.txt
 
 # Default port of flask
 EXPOSE 5000
-WORKDIR /opt/mxdb
+WORKDIR /mxdb-server/src/
 # ENTRYPOINT ["./startApp.sh"] # don't use this, it does not allow to /bin/sh to container
 # CMD ["./startApp.sh","--dbloc", "linked"] # Default command to run # <--- old comman from before gunicorn
 CMD ["./startApp.sh"] # Default command to run
