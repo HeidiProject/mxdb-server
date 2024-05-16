@@ -2,4 +2,4 @@
 
 export PYTHONPATH=$PYTHONPATH:/opt/mxdb/app:/opt/mxdb/etc:/opt/mxdb/lib
 
-gunicorn app:app --worker-class gevent --workers 1 --bind 0.0.0.0:5000  --log-file=- --access-logfile=-
+gunicorn app:app --reload --worker-class gevent --workers 1 --bind 0.0.0.0:5000  --log-file=- --access-logfile=-
