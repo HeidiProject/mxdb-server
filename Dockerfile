@@ -14,11 +14,12 @@ RUN git config --global user.name "Kate Smith"
 
 
 #COPY /mxdb-server/src/ /opt/mxdb
-#COPY /mxdb-server/appconfig.py /opt/mxdb/appconfig.py
-
+COPY appconfig.py /mxdb-server/src/appconfig.py
 
 #RUN apt-get install bc
 RUN pip install --upgrade pip && pip install --no-cache-dir -r /mxdb-server/requirements.txt
+ENV PYTHONPATH=/mxdb-server/src/app:/mxdb-server/src/lib:/mxdb-server/src/etc:$PYTHONPATH
+ENV MONGO_URI=172.23.168.188:27017/mxdb
 
 # Default port of flask
 EXPOSE 5000

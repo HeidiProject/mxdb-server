@@ -79,6 +79,15 @@ def updateDewar():
     dewar = {"DEWARHISTORYID": 1}
     return json.dumps(dewar, default=json_serialhelper.json_serialhelper)
 
+@app.route("/api/dewars/recent",methods=["GET"])
+@cross_origin()
+def recentDewars():
+    return {}
+
+@app.route("/api/dewars/history",methods=["GET"])
+@cross_origin()
+def dewarHistory():
+    return {}
 
 @app.route("/api/beamlines/zone4",methods=["GET"])
 @cross_origin()
