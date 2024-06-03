@@ -78,6 +78,7 @@ def updateDewar():
     coll = "DewarLogistics"
     location = request.form.get("LOCATION").upper()
     barcode = request.form.get("BARCODE") #TODO make uppercase.. later
+    awb = request.form.get("TRACKINGNUMBERFROMSYNCHROTRON")
     exists = mongo_ops.find(coll, {"dewar.barcode": barcode})
     if exists.count():
         update_blank = {"barcode": "", "arrivalDate": "", "facilityCode": "", "status": "", "onBeamline": False}
@@ -86,7 +87,7 @@ def updateDewar():
         on_beamline = True
     else:
         on_beamline = False
-    update = {"barcode": barcode, "arrivalDate": datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%S"), "facilityCode": "", "status": "", "onBeamline": on_beamline}
+    update = {"barcode": barcode, "arrivalDate": datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%S"), "facilityCode": "", "status": "", "onBeamline": on_beamline, "awb": awb}
     r = mongo_ops.update_one(coll, {"position": location}, {"dewar": update}, upsert=True)
     insert = mongo_ops.insert_one("DewarLogisticsHistory", {"position": location, "dewar":update})
     dewar = mongo_ops.find(coll, {"position": location})
@@ -118,9 +119,13 @@ def dewarHistory():
     stores = list(mongo_ops.find(coll, {"position": {"$in": locations}}))
     n = 0
     for store in reversed(stores):
-        if n >= max_entries:
+        if n >= int(max_entries):
             break
-        recent_dewars[n] = {"barcode": store["dewar"]["barcode"], "date": store["dewar"]["arrivalDate"], "storageLocation": store["position"],  "facilitycode": "", "status": "", "awb": None, "sid": None}
+        if "awb" in store["dewar"]:
+            awb = store["dewar"]["awb"]
+        else:
+            awb = None
+        recent_dewars[n] = {"barcode": store["dewar"]["barcode"], "date": store["dewar"]["arrivalDate"], "storageLocation": store["position"],  "facilitycode": "", "status": "", "awb": awb, "sid": None}
         n += 1
     return json.dumps(recent_dewars, default=str)
 
