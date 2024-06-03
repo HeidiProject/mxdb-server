@@ -9,7 +9,6 @@ import messageParser
 
 import json, bson, re
 from bson import json_util
-import datetime
 import dateutil.parser
 
 from error_handler import InvalidUsage
@@ -76,8 +75,14 @@ def handle_invalid_usage(error):
 @app.route("/api/shipment/dewars/history", methods=["POST"])
 @cross_origin()
 def updateDewar():
+    coll = "DewarLogistics"
+    location = request.form.get("LOCATION")
+    barcode = request.form.get("BARCODE")
+    update = {"barcode": barcode, "arrivalDate": datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%S"), "facilityCode": "", "status": "", "onBeamline": False}
+    r = mongo_ops.update_one(coll, {"position": location}, {"dewar": update}, upsert=True)
+    dewar = mongo_ops.find(coll, {"position": location})
     dewar = {"DEWARHISTORYID": 1}
-    return json.dumps(dewar, default=json_serialhelper.json_serialhelper)
+    return json.dumps(dewar, default=str)#default=json_serialhelper.json_serialhelper)
 
 @app.route("/api/dewars/recent",methods=["GET"])
 @cross_origin()
