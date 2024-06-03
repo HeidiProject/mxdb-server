@@ -76,10 +76,19 @@ def handle_invalid_usage(error):
 @cross_origin()
 def updateDewar():
     coll = "DewarLogistics"
-    location = request.form.get("LOCATION")
-    barcode = request.form.get("BARCODE")
-    update = {"barcode": barcode, "arrivalDate": datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%S"), "facilityCode": "", "status": "", "onBeamline": False}
+    location = request.form.get("LOCATION").upper()
+    barcode = request.form.get("BARCODE") #TODO make uppercase.. later
+    exists = mongo_ops.find(coll, {"dewar.barcode": barcode})
+    if exists.count():
+        update_blank = {"barcode": "", "arrivalDate": "", "facilityCode": "", "status": "", "onBeamline": False}
+        update_one = mongo_ops.update_one(coll, {"dewar.barcode": barcode}, {"dewar": update_blank})
+    if location in ["I03","I04"]:
+        on_beamline = True
+    else:
+        on_beamline = False
+    update = {"barcode": barcode, "arrivalDate": datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%S"), "facilityCode": "", "status": "", "onBeamline": on_beamline}
     r = mongo_ops.update_one(coll, {"position": location}, {"dewar": update}, upsert=True)
+    insert = mongo_ops.insert_one("DewarLogisticsHistory", {"position": location, "dewar":update})
     dewar = mongo_ops.find(coll, {"position": location})
     dewar = {"DEWARHISTORYID": 1}
     return json.dumps(dewar, default=str)#default=json_serialhelper.json_serialhelper)
@@ -87,16 +96,19 @@ def updateDewar():
 @app.route("/api/dewars/recent",methods=["GET"])
 @cross_origin()
 def recentDewars():
-    return {}
+    locations = request.args.getlist("locations")
+    recent_dewars = {}
+    for location in locations:
+        query = list(mongo_ops.find("DewarLogisticsHistory", {"position": location}))
+        if len(query) > 0:
+            query = list(mongo_ops.find("DewarLogisticsHistory", {"dewar.barcode": query[-1]["dewar"]["barcode"]}))
+            recent_dewars[location] = query[-1]["dewar"]
+    print(recent_dewars)
+    return json.dumps(recent_dewars, default=str)#json_serialhelper.json_serialhelper)
 
 @app.route("/api/dewars/history",methods=["GET"])
 @cross_origin()
 def dewarHistory():
-    return {}
-
-@app.route("/api/dewars/recent",methods=["GET"])
-@cross_origin()
-def getDewarHistory():
     return {}
 
 @app.route("/api/beamlines/zone4",methods=["GET"])
