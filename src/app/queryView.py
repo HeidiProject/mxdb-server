@@ -89,6 +89,11 @@ def recentDewars():
 def dewarHistory():
     return {}
 
+@app.route("/api/dewars/recent",methods=["GET"])
+@cross_origin()
+def getDewarHistory():
+    return {}
+
 @app.route("/api/beamlines/zone4",methods=["GET"])
 @cross_origin()
 def getDewars():
