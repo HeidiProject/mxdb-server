@@ -109,7 +109,20 @@ def recentDewars():
 @app.route("/api/dewars/history",methods=["GET"])
 @cross_origin()
 def dewarHistory():
-    return {}
+    """Used exclusively for stores-in and stores-out"""
+    locations = request.args.getlist("locations")
+    recent_dewars = {}
+    coll = "DewarLogisticsHistory"
+    max_entries = request.args.get("max_entries")
+    # list of locations
+    stores = list(mongo_ops.find(coll, {"position": {"$in": locations}}))
+    n = 0
+    for store in reversed(stores):
+        if n >= max_entries:
+            break
+        recent_dewars[n] = {"barcode": store["dewar"]["barcode"], "date": store["dewar"]["arrivalDate"], "storageLocation": store["position"],  "facilitycode": "", "status": "", "awb": None, "sid": None}
+        n += 1
+    return json.dumps(recent_dewars, default=str)
 
 @app.route("/api/beamlines/zone4",methods=["GET"])
 @cross_origin()
