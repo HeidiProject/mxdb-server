@@ -72,6 +72,22 @@ def handle_invalid_usage(error):
     response.status_code = error.status_code
     return response
 
+@app.route("/api/shipment/dewars/comments/<barcode>", methods=["POST"])
+@cross_origin()
+def updateDewarComments(barcode):
+    payload = request.form.get("COMMENTS")
+    coll = "DewarLogisticsHistory"
+    print(payload)
+    query = list(mongo_ops.find(coll, {"dewar.barcode": barcode}))
+    if len(query) > 0:
+        on_beamline = query[-1]["dewar"]["onBeamline"]
+        update = {"barcode": barcode, "arrivalDate": datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%S"), "facilityCode": "", "status": "", "onBeamline": on_beamline, "awb": None}
+        insert = mongo_ops.insert_one(coll, {"position": "LN2TOPUP" , "dewar":update})
+    else:
+        print("oops")
+    dewar = {"DEWARHISTORYID": 1} #TODO fix this..
+    return json.dumps(dewar, default=str)
+
 @app.route("/api/shipment/dewars/history", methods=["POST"])
 @cross_origin()
 def updateDewar():
@@ -93,6 +109,22 @@ def updateDewar():
     dewar = mongo_ops.find(coll, {"position": location})
     dewar = {"DEWARHISTORYID": 1}
     return json.dumps(dewar, default=str)#default=json_serialhelper.json_serialhelper)
+
+@app.route("/api/dewars/find",methods=["GET"])
+@cross_origin()
+def getDewar():
+    """ """
+    barcode = request.args.get("DEWARCODE")
+    max_entries = request.args.get("MAX_ENTRIES")
+    query = list(mongo_ops.find("DewarLogisticsHistory", {"dewar.barcode": barcode}))
+    result = {"dewarId": barcode, "barCode": barcode, "facilityCode": barcode, "storageLocations": []}
+    n = 0
+    for item in reversed(query):
+        if n >= int(max_entries):
+            break
+        result["storageLocations"].append({"location": item["position"], "arrivalDate": item["dewar"]["arrivalDate"]})
+        n += 1
+    return json.dumps(result, default=str)
 
 @app.route("/api/dewars/recent",methods=["GET"])
 @cross_origin()
