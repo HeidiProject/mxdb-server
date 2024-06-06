@@ -75,14 +75,21 @@ def handle_invalid_usage(error):
 @app.route("/api/shipment/dewars/comments/<barcode>", methods=["POST"])
 @cross_origin()
 def updateDewarComments(barcode):
-    payload = request.form.get("COMMENTS")
-    coll = "DewarLogisticsHistory"
+    payload = json.loads(request.form.get("COMMENTS"))
+    coll = "DewarLogistics"
     print(payload)
+    print(type(payload))
     query = list(mongo_ops.find(coll, {"dewar.barcode": barcode}))
     if len(query) > 0:
+        if "toppedUp" in payload:
+            existing_comments = query[-1]["dewar"]["comments"]
+            if "toppedUp" in existing_comments:
+                existing_comments["toppedUp"].append(payload["toppedUp"])
+            else:
+                existing_comments["toppedUp"] = payload["toppedUp"]
+            payload = existing_comments
         on_beamline = query[-1]["dewar"]["onBeamline"]
-        update = {"barcode": barcode, "arrivalDate": datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%S"), "facilityCode": "", "status": "", "onBeamline": on_beamline, "awb": None}
-        insert = mongo_ops.insert_one(coll, {"position": "LN2TOPUP" , "dewar":update})
+        update = mongo_ops.update_one(coll, {"dewar.barcode": barcode} , {"dewar.comments":payload, "dewar.onBeamline": on_beamline})
     else:
         print("oops")
     dewar = {"DEWARHISTORYID": 1} #TODO fix this..
@@ -95,15 +102,17 @@ def updateDewar():
     location = request.form.get("LOCATION").upper()
     barcode = request.form.get("BARCODE") #TODO make uppercase.. later
     awb = request.form.get("TRACKINGNUMBERFROMSYNCHROTRON")
-    exists = mongo_ops.find(coll, {"dewar.barcode": barcode})
-    if exists.count():
-        update_blank = {"barcode": "", "arrivalDate": "", "facilityCode": "", "status": "", "onBeamline": False}
+    comments = None
+    exists = list(mongo_ops.find(coll, {"dewar.barcode": barcode}))
+    if len(exists) > 0:
+        comments = exists[0]["dewar"]["comments"]
+        update_blank = {"barcode": "", "arrivalDate": "", "facilityCode": "", "status": "", "onBeamline": False, "comments": None}
         update_one = mongo_ops.update_one(coll, {"dewar.barcode": barcode}, {"dewar": update_blank})
     if location in ["I03","I04"]:
         on_beamline = True
     else:
         on_beamline = False
-    update = {"barcode": barcode, "arrivalDate": datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%S"), "facilityCode": "", "status": "", "onBeamline": on_beamline, "awb": awb}
+    update = {"dewarId": barcode, "barcode": barcode, "arrivalDate": datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%S"), "facilityCode": "", "status": "", "onBeamline": on_beamline, "awb": awb, "comments": comments}
     r = mongo_ops.update_one(coll, {"position": location}, {"dewar": update}, upsert=True)
     insert = mongo_ops.insert_one("DewarLogisticsHistory", {"position": location, "dewar":update})
     dewar = mongo_ops.find(coll, {"position": location})
@@ -172,7 +181,7 @@ def getDewars():
     for result in results:
         position = result["position"]
         dewars[position] = result["dewar"]
-    return json.dumps(dewars, default=json_serialhelper.json_serialhelper)
+    return json.dumps(dewars, default=str)#json_serialhelper.json_serialhelper)
 
 @app.route("/db/query", methods=["GET"])
 @cross_origin()
