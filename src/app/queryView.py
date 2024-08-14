@@ -78,11 +78,13 @@ def updateDewarComments(barcode):
     payload = json.loads(request.form.get("COMMENTS"))
     coll = "DewarLogistics"
     print(payload)
-    print(type(payload))
     query = list(mongo_ops.find(coll, {"dewar.barcode": barcode}))
+    print(query)
     if len(query) > 0:
-        if "comments" not in payload:
+        if "comments" not in payload: #not
             existing_comments = query[-1]["dewar"]["comments"]
+            if not existing_comments:
+                existing_comments = {}
             if "toppedUp" in existing_comments:
                 existing_comments["toppedUp"].append(payload["toppedUp"][0])
             else:
@@ -175,7 +177,7 @@ def dewarHistory():
 def getDewars(zone):
     coll = "DewarLogistics"
     print(zone)
-    pattern = re.compile("(TRAY|RACK)-.*")
+    pattern = re.compile("(TRAY|RACK|TROLLEY)-.*")
     query = {"position": pattern}
     results = mongo_ops.find(coll, query)
     dewars = {}
