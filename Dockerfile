@@ -3,6 +3,13 @@ FROM python:3.11-slim
 # Set bash as the default shell
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
+
+# Configure internal PyPI mirror for DMZ
+
+COPY pip.conf /etc/pip.conf
+
+
+
 # Install dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
